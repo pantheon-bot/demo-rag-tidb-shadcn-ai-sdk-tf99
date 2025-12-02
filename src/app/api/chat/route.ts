@@ -57,14 +57,13 @@ Please answer the user's question based on the provided context. If the context 
       model: openai('gpt-4o-mini'),
       messages: modelMessages,
       temperature: 0.7,
-      maxTokens: 1000,
       async onFinish({ text }) {
         // Save assistant response to database
         await saveMessage(effectiveSessionId, 'assistant', text);
       },
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error('Chat API error:', error);
     return new Response(

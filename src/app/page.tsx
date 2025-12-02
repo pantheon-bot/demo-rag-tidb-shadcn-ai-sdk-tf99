@@ -64,7 +64,7 @@ export default function Home() {
                 1
               </span>
               <span>
-                Your question is converted to a vector embedding using OpenAI's text-embedding-3-small model
+                Your question is converted to a vector embedding using OpenAI&apos;s text-embedding-3-small model
               </span>
             </li>
             <li className="flex gap-3">

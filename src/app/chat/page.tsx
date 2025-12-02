@@ -1,19 +1,36 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
+import { TextStreamChatTransport } from 'ai';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Bot, User } from 'lucide-react';
+import { useState } from 'react';
 
 export default function ChatPage() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/chat',
-    body: {
-      sessionId: 'demo-session-' + Date.now(), // Simple session management
-    },
+  const [inputValue, setInputValue] = useState('');
+  const [sessionId] = useState(() => 'demo-session-' + Date.now());
+
+  const { messages, sendMessage, status } = useChat({
+    transport: new TextStreamChatTransport({
+      api: '/api/chat',
+      body: {
+        sessionId,
+      },
+    }),
   });
+
+  const isLoading = status === 'streaming';
+
+  // Helper to extract text from message parts
+  const getMessageText = (message: typeof messages[0]) => {
+    return message.parts
+      .filter((part): part is Extract<typeof part, { type: 'text' }> => part.type === 'text')
+      .map((part) => part.text)
+      .join('');
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 p-4 dark:from-zinc-950 dark:to-black">
@@ -76,7 +93,7 @@ export default function ChatPage() {
                         : 'bg-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-50'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                    <p className="whitespace-pre-wrap text-sm">{getMessageText(message)}</p>
                   </div>
                   {message.role === 'user' && (
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-900 dark:bg-zinc-100">
@@ -103,15 +120,24 @@ export default function ChatPage() {
 
         {/* Input Area */}
         <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (inputValue.trim()) {
+                sendMessage({ role: 'user', parts: [{ type: 'text', text: inputValue }] });
+                setInputValue('');
+              }
+            }}
+            className="flex items-center gap-2"
+          >
             <Input
-              value={input}
-              onChange={handleInputChange}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask a question..."
               disabled={isLoading}
               className="flex-1"
             />
-            <Button type="submit" disabled={isLoading || !input?.trim()}>
+            <Button type="submit" disabled={isLoading || !inputValue?.trim()}>
               <Send className="h-4 w-4" />
             </Button>
           </form>

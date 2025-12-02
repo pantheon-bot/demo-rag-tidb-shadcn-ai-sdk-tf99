@@ -10,7 +10,7 @@ export interface DocumentsTable {
   content: string;
   embedding: string; // VECTOR type is represented as string in Kysely
   source: string | null;
-  metadata: ColumnType<Record<string, any> | null, string | null, string | null>; // JSON type
+  metadata: ColumnType<Record<string, unknown> | null, string | null, string | null>; // JSON type
   created_at: Generated<Date>;
 }
 

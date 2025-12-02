@@ -28,11 +28,12 @@ export async function setupDatabase() {
         CREATE VECTOR INDEX idx_embedding ON documents ((VEC_COSINE_DISTANCE(embedding)))
       `.execute(db);
       console.log('✓ Created vector index');
-    } catch (error: any) {
-      if (error.code === 'ER_DUP_KEYNAME') {
+    } catch (error: unknown) {
+      const err = error as { code?: string; message?: string };
+      if (err.code === 'ER_DUP_KEYNAME') {
         console.log('✓ Vector index already exists');
       } else {
-        console.warn('⚠ Could not create vector index:', error.message);
+        console.warn('⚠ Could not create vector index:', err.message ?? 'Unknown error');
         console.warn('Vector search will still work but may be slower without an index');
       }
     }
